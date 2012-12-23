@@ -1,4 +1,4 @@
-NanodeUNIO	KEYWORD1
+UNIO	KEYWORD1
 read	KEYWORD2
 start_write	KEYWORD2
 enable_write	KEYWORD2
