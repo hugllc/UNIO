@@ -47,10 +47,12 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
    your breath though! */
 
 // TaaraNode - PORTB1
+/*
 #define UNIO_DDR DDRB
 #define UNIO_PORT PORTB
 #define UNIO_PIN 1
 #define UNIO_PINPORT PINB
+*/
 
 // Nanode RF - PORTD7   
 /*
@@ -59,6 +61,14 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_PIN 7
 #define UNIO_PINPORT PIND
 */   
+
+// UNO - PORTD2
+
+#define UNIO_DDR DDRD
+#define UNIO_PORT PORTD
+#define UNIO_PIN 2
+#define UNIO_PINPORT PIND
+
    
 class UNIO {
  private:
