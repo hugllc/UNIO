@@ -172,6 +172,12 @@ static void unio_start_header(void) {
 
 UNIO::UNIO(byte address) {
   addr=address;
+#if defined(ARDUINO_ARCH_SAMD)
+    // Set up PA10 Input for continuous sampling 
+    PORT->Group[0].PINCFG[PIN_PA10].bit.PMUXEN = 0;
+    PORT->Group[0].PINCFG[PIN_PA10].bit.INEN = 1;
+    PORT->Group[0].CTRL.bit.SAMPLING = 1;
+#endif
 }
 
 #define fail() do { sei(); return false; } while (0)
