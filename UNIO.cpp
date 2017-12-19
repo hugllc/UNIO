@@ -48,6 +48,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_OUTPUT() do { UNIO_DDR |= (1 << UNIO_PIN); } while (0)
 #define UNIO_INPUT() do { UNIO_DDR &= ~(1 << UNIO_PIN); } while (0)
 
+#if defined(ARDUINO_ARCH_SAMD)
+
+static inline void sei(void)
+{
+   system_interrupt_enter_critical_section();    
+}    
+
+static inline void cli(void)
+{
+    system_interrupt_leave_critical_section();
+}
+
+#endif
+
 void set_bus(boolean state) {
   if (state)
     UNIO_PORT |= (1 << UNIO_PIN);

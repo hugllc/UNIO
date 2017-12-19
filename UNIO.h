@@ -30,6 +30,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 
 #if defined(ARDUINO_ARCH_SAMD)
 #include "sam.h"
+#include "asf.h"
 #endif
 
 /* Class to access Microchip UNI/O devices connected to pin 7 of the
