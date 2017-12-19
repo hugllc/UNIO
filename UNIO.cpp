@@ -211,7 +211,7 @@ boolean UNIO::start_write(const byte *buffer,word address,word length) {
   unio_start_header();
   if (!unio_send(cmd,4,false)) fail();
   if (!unio_send(buffer,length,true)) fail();
-  interrupts(): //sei();
+  interrupts(); //sei();
   return true;
 }
 
