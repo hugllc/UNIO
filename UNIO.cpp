@@ -48,19 +48,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_OUTPUT() do { UNIO_DDR |= (1 << UNIO_PIN); } while (0)
 #define UNIO_INPUT() do { UNIO_DDR &= ~(1 << UNIO_PIN); } while (0)
 
-#if defined(ARDUINO_ARCH_SAMD)
-
-static inline void sei(void)
-{
-   system_interrupt_enter_critical_section();    
-}    
-
-static inline void cli(void)
-{
-    system_interrupt_leave_critical_section();
-}
-
-#endif
 
 void set_bus(boolean state) {
   if (state)
@@ -203,11 +190,11 @@ boolean UNIO::read(byte *buffer,word address,word length) {
   cmd[2]=(byte)(address>>8);
   cmd[3]=(byte)(address&0xff);
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,4,false)) fail();
   if (!unio_read(buffer,length)) fail();
-  sei();
+  interrupts(); //sei();
   return true;
 }
 
@@ -219,11 +206,11 @@ boolean UNIO::start_write(const byte *buffer,word address,word length) {
   cmd[2]=(byte)(address>>8);
   cmd[3]=(byte)(address&0xff);
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,4,false)) fail();
   if (!unio_send(buffer,length,true)) fail();
-  sei();
+  interrupts(): //sei();
   return true;
 }
 
@@ -232,10 +219,10 @@ boolean UNIO::enable_write(void) {
   cmd[0]=addr;
   cmd[1]=UNIO_WREN;
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,2,true)) fail();
-  sei();
+  interrupts();  //sei();
   return true;
 }
 
@@ -244,10 +231,10 @@ boolean UNIO::disable_write(void) {
   cmd[0]=addr;
   cmd[1]=UNIO_WRDI;
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,2,true)) fail();
-  sei();
+  interrupts(); //sei();
   return true;
 }
 
@@ -256,11 +243,11 @@ boolean UNIO::read_status(byte *status) {
   cmd[0]=addr;
   cmd[1]=UNIO_RDSR;
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,2,false)) fail();
   if (!unio_read(status,1)) fail();
-  sei();
+  interrupts(); //sei();
   return true;
 }
 
@@ -270,10 +257,10 @@ boolean UNIO::write_status(byte status) {
   cmd[1]=UNIO_WRSR;
   cmd[2]=status;
   unio_standby_pulse();
-  cli();
+  noInterrupts(); //cli();
   unio_start_header();
   if (!unio_send(cmd,3,true)) fail();
-  sei();
+  interrupts(); //sei();
   return true;
 }
 
@@ -294,11 +281,11 @@ boolean UNIO::await_write_complete(void) {
      continue to happen.*/
   do {
     unio_inter_command_gap();
-    cli();
+    noInterrupts(); //cli();
     unio_start_header();
     if (!unio_send(cmd,2,false)) fail();
     if (!unio_read(&status,1)) fail();
-    sei();
+    interrupts(); //sei();
   } while (status&0x01);
   return true;
 }
