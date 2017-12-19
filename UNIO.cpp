@@ -181,7 +181,8 @@ UNIO::UNIO(byte address) {
 #endif
 }
 
-#define fail() do { sei(); return false; } while (0)
+//#define fail() do { sei(); return false; } while (0)
+#define fail() do { interrupts(); return false; } while (0)
 
 boolean UNIO::read(byte *buffer,word address,word length) {
   byte cmd[4];
