@@ -45,19 +45,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_FUDGE_FACTOR 5
 
 // Port and pin are defined in UNIO.h
-#define UNIO_OUTPUT() do { UNIO_DDR |= (1 << UNIO_PIN); } while (0)
-#define UNIO_INPUT() do { UNIO_DDR &= ~(1 << UNIO_PIN); } while (0)
+#define UNIO_OUTPUT(pin) do { UNIO_DDR |= (1 << pin); } while (0)
+#define UNIO_INPUT(pin) do { UNIO_DDR &= ~(1 << pin); } while (0)
 
+volatile byte unioPin;
 
 void set_bus(boolean state) {
   if (state)
-    UNIO_PORT |= (1 << UNIO_PIN);
+    UNIO_PORT |= (1 << unioPin);
   else
-    UNIO_PORT &= ~(1 << UNIO_PIN);
+    UNIO_PORT &= ~(1 << unioPin);
 }
 
 boolean read_bus(void) {
-  return !!(UNIO_PINPORT & (1 << UNIO_PIN)); 
+  return !!(UNIO_PINPORT & (1 << unioPin)); 
 }
 
 /* Original Nanode specific bitbanging functions
@@ -86,7 +87,7 @@ static void unio_inter_command_gap(void) {
    bus low for UNIO_TSS, then high for UNIO_TSTBY. */
 static void unio_standby_pulse(void) {
   set_bus(0);
-  UNIO_OUTPUT();
+  UNIO_OUTPUT(unioPin);
   delayMicroseconds(UNIO_TSS+UNIO_FUDGE_FACTOR);
   set_bus(1);
   delayMicroseconds(UNIO_TSTBY+UNIO_FUDGE_FACTOR);
@@ -113,9 +114,9 @@ static volatile boolean rwbit(boolean w) {
 
 static boolean read_bit(void) {
   boolean b;
-  UNIO_INPUT();
+  UNIO_INPUT(unioPin);
   b=rwbit(1);
-  UNIO_OUTPUT();
+  UNIO_OUTPUT(unioPin);
   return b;
 }
 
@@ -130,11 +131,11 @@ static boolean send_byte(byte b, boolean mak) {
 
 static boolean read_byte(byte *b, boolean mak) {
   byte data=0;
-  UNIO_INPUT();
+  UNIO_INPUT(unioPin);
   for (int i=0; i<8; i++) {
     data = (data << 1) | rwbit(1);
   }
-  UNIO_OUTPUT();
+  UNIO_OUTPUT(unioPin);
   *b=data;
   rwbit(mak);
   return read_bit();
@@ -171,12 +172,13 @@ static void unio_start_header(void) {
   send_byte(UNIO_STARTHEADER,true);
 }
 
-UNIO::UNIO(byte address) {
-  addr=address;
+UNIO::UNIO(byte address, byte portPin) {
+  _addr=address;
+  unioPin = portPin;
 #if defined(ARDUINO_ARCH_SAMD)
-    // Set up PA10 Input for continuous sampling 
-    PORT->Group[0].PINCFG[PIN_PA10].bit.PMUXEN = 0;
-    PORT->Group[0].PINCFG[PIN_PA10].bit.INEN = 1;
+    // Set up Port A pin for Input for continuous sampling 
+    PORT->Group[0].PINCFG[unioPin].bit.PMUXEN = 0;
+    PORT->Group[0].PINCFG[unioPin].bit.INEN = 1;
     PORT->Group[0].CTRL.bit.SAMPLING = 1;
 #endif
 }
@@ -186,7 +188,7 @@ UNIO::UNIO(byte address) {
 
 boolean UNIO::read(byte *buffer,word address,word length) {
   byte cmd[4];
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_READ;
   cmd[2]=(byte)(address>>8);
   cmd[3]=(byte)(address&0xff);
@@ -202,7 +204,7 @@ boolean UNIO::read(byte *buffer,word address,word length) {
 boolean UNIO::start_write(const byte *buffer,word address,word length) {
   byte cmd[4];
   if (((address&0x0f)+length)>16) return false; // would cross page boundary
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_WRITE;
   cmd[2]=(byte)(address>>8);
   cmd[3]=(byte)(address&0xff);
@@ -217,7 +219,7 @@ boolean UNIO::start_write(const byte *buffer,word address,word length) {
 
 boolean UNIO::enable_write(void) {
   byte cmd[2];
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_WREN;
   unio_standby_pulse();
   noInterrupts(); //cli();
@@ -229,7 +231,7 @@ boolean UNIO::enable_write(void) {
 
 boolean UNIO::disable_write(void) {
   byte cmd[2];
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_WRDI;
   unio_standby_pulse();
   noInterrupts(); //cli();
@@ -241,7 +243,7 @@ boolean UNIO::disable_write(void) {
 
 boolean UNIO::read_status(byte *status) {
   byte cmd[2];
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_RDSR;
   unio_standby_pulse();
   noInterrupts(); //cli();
@@ -254,7 +256,7 @@ boolean UNIO::read_status(byte *status) {
 
 boolean UNIO::write_status(byte status) {
   byte cmd[3];
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_WRSR;
   cmd[2]=status;
   unio_standby_pulse();
@@ -268,7 +270,7 @@ boolean UNIO::write_status(byte status) {
 boolean UNIO::await_write_complete(void) {
   byte cmd[2];
   byte status;
-  cmd[0]=addr;
+  cmd[0]=_addr;
   cmd[1]=UNIO_RDSR;
   unio_standby_pulse();
   /* Here we issue RDSR commands back-to-back until the WIP bit in the

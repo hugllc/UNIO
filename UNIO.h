@@ -82,9 +82,18 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
    
 class UNIO {
  private:
-  byte addr;
+  byte _addr;
+  
  public:
-  UNIO(byte address);
+  /**
+   * @brief Constructor for UNIO library
+   * 
+   * Takes the address for the UNIO device - 0xa0 
+   * and the port pin number for the serial data.  
+   * For Arduino UNO or Nano the pin must be a Port D Pin number
+   * For Arduino SAMC the pin must be a Port A pin number
+   */
+  UNIO(byte address, byte portPin);
 
   /* All the following calls return true for success and false for
      failure. */
