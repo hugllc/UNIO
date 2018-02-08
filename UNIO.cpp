@@ -132,7 +132,7 @@ static boolean send_byte(byte b, boolean mak) {
 
 static boolean read_byte(byte *b, boolean mak) {
   byte data=0;
-  UNIO_INPUT(unioPin);
+  UNIO_INPUT();
   for (int i=0; i<8; i++) {
     data = (data << 1) | rwbit(1);
   }
