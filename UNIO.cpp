@@ -46,20 +46,20 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_FUDGE_FACTOR 5
 
 // Port and pin are defined in UNIO.h
-#define UNIO_OUTPUT(pin) do { UNIO_DDR |= (1 << pin); } while (0)
-#define UNIO_INPUT(pin) do { UNIO_DDR &= ~(1 << pin); } while (0)
+#define UNIO_OUTPUT() do { UNIO_DDR |= (1 << UNIO_PIN); } while (0)
+#define UNIO_INPUT() do { UNIO_DDR &= ~(1 << UNIO_PIN); } while (0)
 
 volatile byte unioPin;
 
 void set_bus(boolean state) {
   if (state)
-    UNIO_PORT |= (1 << unioPin);
+    UNIO_PORT |= (1 << UNIO_PIN);
   else
-    UNIO_PORT &= ~(1 << unioPin);
+    UNIO_PORT &= ~(1 << UNIO_PIN);
 }
 
 boolean read_bus(void) {
-  return !!(UNIO_PINPORT & (1 << unioPin)); 
+  return !!(UNIO_PINPORT & (1 << UNIO_PIN)); 
 }
 
 /* Original Nanode specific bitbanging functions
@@ -88,7 +88,7 @@ static void unio_inter_command_gap(void) {
    bus low for UNIO_TSS, then high for UNIO_TSTBY. */
 static void unio_standby_pulse(void) {
   set_bus(0);
-  UNIO_OUTPUT(unioPin);
+  UNIO_OUTPUT();
   delayMicroseconds(UNIO_TSS+UNIO_FUDGE_FACTOR);
   set_bus(1);
   delayMicroseconds(UNIO_TSTBY+UNIO_FUDGE_FACTOR);
@@ -115,9 +115,9 @@ static volatile boolean rwbit(boolean w) {
 
 static boolean read_bit(void) {
   boolean b;
-  UNIO_INPUT(unioPin);
+  UNIO_INPUT();
   b=rwbit(1);
-  UNIO_OUTPUT(unioPin);
+  UNIO_OUTPUT();
   return b;
 }
 
@@ -136,7 +136,7 @@ static boolean read_byte(byte *b, boolean mak) {
   for (int i=0; i<8; i++) {
     data = (data << 1) | rwbit(1);
   }
-  UNIO_OUTPUT(unioPin);
+  UNIO_OUTPUT();
   *b=data;
   rwbit(mak);
   return read_bit();
@@ -178,8 +178,8 @@ UNIO::UNIO(byte address, byte portPin) {
   unioPin = portPin;
 #if defined(ARDUINO_ARCH_SAMD)
     // Set up Port A pin for Input for continuous sampling 
-    PORT->Group[0].PINCFG[unioPin].bit.PMUXEN = 0;
-    PORT->Group[0].PINCFG[unioPin].bit.INEN = 1;
+    PORT->Group[0].PINCFG[UNIO_PIN].bit.PMUXEN = 0;
+    PORT->Group[0].PINCFG[UNIO_PIN].bit.INEN = 1;
     PORT->Group[0].CTRL.bit.SAMPLING = 1;
 #endif
 }

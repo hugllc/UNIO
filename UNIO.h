@@ -70,13 +70,17 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
   // SAMC21 - PA10
   #define UNIO_DDR REG_PORT_DIR0
   #define UNIO_PORT REG_PORT_OUT0
-  #define UNIO_PIN PIN_PA10
+  #ifndef UNIO_PIN
+    #define UNIO_PIN PIN_PA10
+  #endif
   #define UNIO_PINPORT REG_PORT_IN0
 #else
   // UNO - PORTD2
   #define UNIO_DDR DDRD
   #define UNIO_PORT PORTD
-  #define UNIO_PIN 2
+  #ifndef UNIO_PIN
+    #define UNIO_PIN 2
+  #endif
   #define UNIO_PINPORT PIND
 #endif
    
