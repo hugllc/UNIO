@@ -48,7 +48,6 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.  */
 #define UNIO_OUTPUT() do { UNIO_DDR |= (1 << UNIO_PIN); } while (0)
 #define UNIO_INPUT() do { UNIO_DDR &= ~(1 << UNIO_PIN); } while (0)
 
-volatile byte unioPin;
 
 void set_bus(boolean state) {
   if (state)
@@ -172,9 +171,8 @@ static void unio_start_header(void) {
   send_byte(UNIO_STARTHEADER,true);
 }
 
-UNIO::UNIO(byte address, byte portPin) {
+UNIO::UNIO(byte address) {
   _addr=address;
-  unioPin = portPin;
 #if defined(ARDUINO_ARCH_SAMD)
     // Set up Port A pin for Input for continuous sampling 
     PORT->Group[0].PINCFG[UNIO_PIN].bit.PMUXEN = 0;

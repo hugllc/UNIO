@@ -97,7 +97,7 @@ class UNIO {
    * For Arduino UNO or Nano the pin must be a Port D Pin number
    * For Arduino SAMC the pin must be a Port A pin number
    */
-  UNIO(byte address, byte portPin);
+  UNIO(byte address);
 
   /* All the following calls return true for success and false for
      failure. */
