@@ -265,6 +265,15 @@ boolean UNIO::write_status(byte status) {
   return true;
 }
 
+/* check to see if the write is complete. */
+boolean UNIO::is_write_complete(void) {
+    uint8_t status;
+    if (!read_status(&status)) {
+        return false;
+    }
+    return !(status & 0x1);
+}
+
 boolean UNIO::await_write_complete(void) {
   byte cmd[2];
   byte status;
