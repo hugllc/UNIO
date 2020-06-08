@@ -154,7 +154,7 @@ class UNIO {
      before continuing (call await_write_complete()).  */
   boolean write_status(byte status);
   /* Check if write is complete */
-  boolean is_write_complete(void);
+  boolean is_writing(void);
   /* Wait until there is no write operation in progress. */
   boolean await_write_complete(void);
 

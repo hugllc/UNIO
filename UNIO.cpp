@@ -266,12 +266,12 @@ boolean UNIO::write_status(byte status) {
 }
 
 /* check to see if the write is complete. */
-boolean UNIO::is_write_complete(void) {
+boolean UNIO::is_writing(void) {
     uint8_t status;
     if (!read_status(&status)) {
         return false;
     }
-    return !(status & 0x1);
+    return (status & 0x1);
 }
 
 boolean UNIO::await_write_complete(void) {
